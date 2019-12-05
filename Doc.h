@@ -20,14 +20,15 @@ public:
     string readFile(string &fileName);
     string cleanFile(string &inString); //removes punctation, and captiatlization
     vector<string> chunkWordFile(string inString, int chunkSize); //chunks into n-word sequences
-    chunkNode * chunkHashFile(vector<string> chunkedFile);
+    vector<int>* createHashTable(string &filename, int chunkSize, vector<string> &file);
     vector<string> chunkFile(vector<string> inVector, int chunkSize);
-    int CheckPlagarism(string &fileName1, string &fileName2, int chunkSize);
+    void addFile(string &fileName, vector<int> hashTable, int *counter[], int chunkSize, vector<string> &files);
     int getdir(string dir, vector<string> &files);
-    void printChunkedFile(); //milestone 1 function
 
 
 private:
+
+    int arraySize;
 
 };
 

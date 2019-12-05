@@ -68,59 +68,79 @@ vector<string> Doc::chunkFile(vector<string> inVector, int chunkSize) {
 }
 
 
-Doc::chunkNode * Doc::chunkHashFile(vector<string> chunkedFile){ //creates hash table size
-    int chunkLength = chunkedFile.at(0).size();
-    int arraySize = 0;
-    string chunk = chunkedFile.at(0);
+vector<int>* Doc::createHashTable(string &fileName, int chunkSize, vector<string> &files){ //creates hash table, and hashes the first file
+    int fileVal;
+    vector<string> file = chunkFile(chunkWordFile(readFile(fileName), chunkSize), chunkSize);
+    for(int i = 0; i < files.size(); i++){
+        if(fileName == files.at(i))
+            fileVal = i;
+
+    }
+    int chunkLength = file.at(0).size();
+    int arraySize;
+    int key;
+    string chunk = file.at(0);
     for (int i = 0; i < chunkLength - 1; i++){
         arraySize += chunk[chunkLength - i - 1] * pow(37, i);
     }
-    chunkNode hashTable[arraySize];
+    vector<int> hashTable[arraySize];
+    for (int l = 0; l < arraySize; l++){
+        hashTable[l].push_back(-1);
+    }
+    for (int j = 0; j < file.size(); j++) { // hashs file
+        key = 0;
+        chunk = file.at(j);
+        chunkLength = file.at(j).size();
+        for (int k = 0; k < chunkLength - 1; k++) {
+            key += chunk[chunkLength - k - 1] * pow(19, k);
+        }
+        hashTable[key].push_back(fileVal);
+    }
     return (hashTable);
 }
 
-int Doc::CheckPlagarism(string &fileName1, string &fileName2, int chunkSize){
-    vector<string> file1 = chunkFile(chunkWordFile(readFile(fileName1), chunkSize), chunkSize);
-    vector<string> file2 = chunkFile(chunkWordFile(readFile(fileName2), chunkSize), chunkSize);
-    Doc:chunkNode *hashTable = chunkHashFile(file1);
-    int chunkLength = file1.at(0).size();
-    string chunk = file1.at(0);
-    int key;
-    int collisions = 0;
-    for (int i = 0; i < file1.size(); i++) { // hashs first file
-        key = 0;
-        chunk = file1.at(i);
-        chunkLength = file1.at(i).size();
-        for (int i = 0; i < chunkLength - 1; i++) {
-            key += chunk[chunkLength - i - 1] * pow(19, i);
-        }
-        chunkNode *temp = new chunkNode;
-        temp -> fileName = fileName1;
-        temp -> next = NULL;
-        hashTable[key] = *temp;
+void Doc::addFile(string &fileName, vector<int> hashTable, int *counter[], int chunkSize, vector<string> &files){
+    int fileVal;
+    vector<string> file = chunkFile(chunkWordFile(readFile(fileName), chunkSize), chunkSize);
+    for(int i = 0; i < files.size(); i++){
+        if(fileName == files.at(i))
+            fileVal = i;
+
     }
-    for (int i = 0; i < file2.size(); i++) { // hashs first file
+    int chunkLength = file.at(0).size();
+    int collisions;
+    int key;
+    string chunk = file.at(0);
+    for (int i = 0; i < file.size(); i++) { // hashs first file
         key = 0;
-        chunk = file2.at(i);
-        chunkLength = file2.at(i).size();
-        for (int i = 0; i < chunkLength - 1; i++) {
-            key += chunk[chunkLength - i - 1] * pow(19, i);
+        chunk = file.at(i);
+        chunkLength = file.at(i).size();
+        for (int l = 0; l < chunkLength - 1; l++) {
+            key += chunk[chunkLength - l - 1] * pow(19, l);
         }
-        if (hashTable[key].fileName == fileName1){
-            chunkNode *temp = new chunkNode;
-            temp -> fileName = fileName2;
-            temp -> next = NULL;
-            hashTable[key].next = temp;
+        if (hashTable[key].at(0) != -1){
+            hashTable[key][0] = fileVal;
+        } else{
             collisions++;
         }
     }
-    return collisions;
+    counter[fileVal][fileVal] = collisions;
 }
+
 
 int Doc::getdir(string dir, vector<string> &files){
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dir.c_str())) == NULL) {
+        cout << "Error(" << errno << ") opening " << dir << endl;
+        return errno;
+    }
 
+    while ((dirp = readdir(dp)) != NULL) {
+        files.push_back(string(dirp->d_name));
+    }
+    closedir(dp);
+    return 0;
 }
-void Doc::printChunkedFile(){ //milestone 1 function
 
-}
 
