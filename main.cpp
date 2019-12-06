@@ -13,13 +13,19 @@ int main()
 {
     string dir = string("sm_doc_set");
     vector<string> files = vector<string>();
-
     getdir(dir,files);
-
-    for (unsigned int i = 0;i < files.size();i++) {
-        cout << i << files[i] << endl;
+    int chunkSize = 6;
+    files.erase(files.begin());
+    files.erase(files.begin());
+    for (unsigned int i = 0; i < files.size(); i++) {
+        cout << files[i] << endl;
     }
     int fileSize = files.size();
-    int collisons[fileSize][fileSize];
+    int *collisions[fileSize];
+    vector<int>* hashT = createHashTable(files[0], dir, chunkSize, files);
+    for (int i = 0; i < fileSize; i++){
+        addFile(files[i], dir, hashT, collisions, chunkSize, files);
+    }
+
     return 0;
 }

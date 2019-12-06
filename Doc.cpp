@@ -9,20 +9,21 @@
 
 using namespace std;
 
-string Doc::readFile(string &fileName) {
+string readFile(string &fileName, string &dir) {
     string outFile;
-    ifstream inFile;
-    inFile.open(fileName);
+    string path = dir + "/" + fileName;
+    ifstream inFile (path);
     string s;
-    inFile >> s;
-    while (inFile) {
-        outFile += s + " ";
-        inFile >> s;
+    if (inFile.is_open()) {
+        while (getline(inFile, s)) {
+            outFile += s + " ";
+        }
+        inFile.close();
     }
     return cleanFile(outFile);
 }
 
-string Doc::cleanFile(string &inString) { //removes punctation, and captiatlization
+string cleanFile(string &inString) { //removes punctation, and captiatlization
     int strLength = inString.length();
     for (int i = 0; i < strLength; i++) {
         if (inString[i] > 0x40 && inString[i] < 0x5B) {
@@ -35,7 +36,7 @@ string Doc::cleanFile(string &inString) { //removes punctation, and captiatlizat
     return inString;
 }
 
-vector<string> Doc::chunkWordFile(string inString, int chunkSize){ //chunks into n-word sequences (needs to be fixed NOT DONE!!)
+vector<string> chunkWordFile(string inString, int chunkSize){ //chunks into n-word sequences (needs to be fixed NOT DONE!!)
     vector<string> chunkWordFile;
     int strLength = inString.length();
     int wordCounter = 0;
@@ -53,7 +54,7 @@ vector<string> Doc::chunkWordFile(string inString, int chunkSize){ //chunks into
     return chunkWordFile;
 }
 
-vector<string> Doc::chunkFile(vector<string> inVector, int chunkSize) {
+vector<string> chunkFile(vector<string> inVector, int chunkSize) {
     int vectorSize = inVector.size();
     vector<string> chunkedFile;
     string inputChunk = "";
@@ -69,9 +70,9 @@ vector<string> Doc::chunkFile(vector<string> inVector, int chunkSize) {
 }
 
 
-vector<int>* Doc::createHashTable(string &fileName, int chunkSize, vector<string> &files){ //creates hash table, and hashes the first file
+vector<int>* createHashTable(string &fileName, string &dir, int chunkSize, vector<string> &files){ //creates hash table, and hashes the first file
     int fileVal;
-    vector<string> file = chunkFile(chunkWordFile(readFile(fileName), chunkSize), chunkSize);
+    vector<string> file = chunkFile(chunkWordFile(readFile(fileName, dir), chunkSize), chunkSize);
     for(int i = 0; i < files.size(); i++){
         if(fileName == files.at(i))
             fileVal = i;
@@ -102,17 +103,17 @@ vector<int>* Doc::createHashTable(string &fileName, int chunkSize, vector<string
     return (hashTable);
 }
 
-void Doc::addFile(string &fileName, vector<int>* hashTable, int *counter[], int chunkSize, vector<string> &files){
+void addFile(string &fileName, string &dir, vector<int>* hashTable, int *counter[], int chunkSize, vector<string> &files){
     int keyLoop;
+    int compareVal;
     int fileVal;
-    vector<string> file = chunkFile(chunkWordFile(readFile(fileName), chunkSize), chunkSize);
+    vector<string> file = chunkFile(chunkWordFile(readFile(fileName, dir), chunkSize), chunkSize);
     for(int i = 0; i < files.size(); i++){
         if(fileName == files.at(i))
             fileVal = i;
 
     }
     int chunkLength = file.at(0).size();
-    int collisions;
     int key;
     string chunk = file.at(0);
     for (int i = 0; i < file.size(); i++) { // hashs first file
@@ -125,15 +126,17 @@ void Doc::addFile(string &fileName, vector<int>* hashTable, int *counter[], int 
         if (hashTable[key][0] == -1){
             hashTable[key][0] = fileVal;
         } else{
-            collisions++;
             keyLoop = 0;
             while(hashTable[key][keyLoop] != -1){
                 keyLoop++;
             }
             hashTable[key][keyLoop] = fileVal;
+            for(int i = 0; i < keyLoop; i++){
+                compareVal = hashTable[key][i];
+                counter[compareVal][fileVal]++;
+            }
         }
     }
-    counter[fileVal][fileVal] = collisions;
 }
 
 
