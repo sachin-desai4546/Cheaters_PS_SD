@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <math.h>
+#include <dirent.h>
 
 #include "Doc.h"
 
@@ -83,7 +84,9 @@ vector<int>* Doc::createHashTable(string &fileName, int chunkSize, vector<string
     for (int i = 0; i < chunkLength - 1; i++){
         arraySize += chunk[chunkLength - i - 1] * pow(37, i);
     }
-    vector<int> hashTable[arraySize];
+
+    vector<int> *hashTable = new vector<int>[arraySize];
+
     for (int l = 0; l < arraySize; l++){
         hashTable[l].push_back(-1);
     }
@@ -99,7 +102,8 @@ vector<int>* Doc::createHashTable(string &fileName, int chunkSize, vector<string
     return (hashTable);
 }
 
-void Doc::addFile(string &fileName, vector<int> hashTable, int *counter[], int chunkSize, vector<string> &files){
+void Doc::addFile(string &fileName, vector<int>* hashTable, int *counter[], int chunkSize, vector<string> &files){
+    int keyLoop;
     int fileVal;
     vector<string> file = chunkFile(chunkWordFile(readFile(fileName), chunkSize), chunkSize);
     for(int i = 0; i < files.size(); i++){
@@ -118,17 +122,22 @@ void Doc::addFile(string &fileName, vector<int> hashTable, int *counter[], int c
         for (int l = 0; l < chunkLength - 1; l++) {
             key += chunk[chunkLength - l - 1] * pow(19, l);
         }
-        if (hashTable[key].at(0) != -1){
+        if (hashTable[key][0] == -1){
             hashTable[key][0] = fileVal;
         } else{
             collisions++;
+            keyLoop = 0;
+            while(hashTable[key][keyLoop] != -1){
+                keyLoop++;
+            }
+            hashTable[key][keyLoop] = fileVal;
         }
     }
     counter[fileVal][fileVal] = collisions;
 }
 
 
-int Doc::getdir(string dir, vector<string> &files){
+int getdir(string dir, vector<string> &files){
     DIR *dp;
     struct dirent *dirp;
     if((dp  = opendir(dir.c_str())) == NULL) {

@@ -22,4 +22,4 @@ int main()
     int fileSize = files.size();
     int collisons[fileSize][fileSize];
     return 0;
-} */
+}
